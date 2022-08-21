@@ -1,5 +1,7 @@
 use crate::memory_tape::*;
 
+use std::io;
+
 use std::{thread, time::Duration};
 
 pub struct Interpreter {
@@ -70,6 +72,27 @@ impl Interpreter {
         self.command_pos = *self.opened_brackets.last().unwrap();
     }
 
+    fn get_input(&mut self) {
+        println!("Input: ");
+
+        let mut input = String::new();
+
+        std::io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to get input!");
+
+        if !input.is_ascii() {
+            return;
+        }
+
+        //try to get as a digit directly
+        let result = input.trim().parse();
+        match result {
+            Ok(digit) => self.tape.set_cell_value(digit),
+            Err(_) =>    self.tape.set_cell_value(input.as_bytes()[0]),
+        }
+    }
+
     pub fn interpret(&mut self, command: &str) {
         self.command = command.chars().collect();
         self.tape.print_tape_sniplet();
@@ -85,7 +108,9 @@ impl Interpreter {
 
                 '[' => self.act_on_lbracket(),
                 ']' => self.act_on_rbracket(),
-                
+
+                ',' => self.get_input(),
+
                 _ => break,
             };
 

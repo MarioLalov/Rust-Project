@@ -74,6 +74,10 @@ impl MemoryTape {
         self.block[self.head_position]
     }
 
+    pub fn set_cell_value(&mut self, value: u8) {
+        self.block[self.head_position] = value;
+    }
+
     fn get_cells_num_left(head_position: usize, cells_num: usize) -> usize {
         if(head_position < cells_num) {
             head_position
