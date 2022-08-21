@@ -5,7 +5,7 @@ const CELLS_IN_SNIPLET: usize = 11;
 
 pub struct MemoryTape {
     block: [u8; TAPE_SIZE],
-    head_position: usize,
+    pub head_position: usize,
 }
 
 impl MemoryTape {
@@ -70,6 +70,10 @@ impl MemoryTape {
         }
     }
 
+    pub fn get_current_value(&self) -> u8 {
+        self.block[self.head_position]
+    }
+
     fn get_cells_num_left(head_position: usize, cells_num: usize) -> usize {
         if(head_position < cells_num) {
             head_position
@@ -90,10 +94,6 @@ impl MemoryTape {
         let cells_in_segment = CELLS_IN_SNIPLET;
 
         for i in 0..cells_in_segment {
-            //if self.head_position == i {
-              //  continue;
-            //}
-
             segment[i] = self.block[startPos];
             startPos += 1;
         } 
@@ -121,7 +121,6 @@ impl MemoryTape {
         let mut cells_used = CELLS_IN_SNIPLET - 1; // count the current cell
 
         let mut segment = [0; CELLS_IN_SNIPLET];
-        //segment[CELLS_IN_SNIPLET/2] = self.block[self.head_position];
 
         let mut right_cells = MemoryTape::get_cells_num_right(self.head_position, CELLS_IN_SNIPLET/2);
         let mut left_cells = MemoryTape::get_cells_num_left(self.head_position, CELLS_IN_SNIPLET/2);
