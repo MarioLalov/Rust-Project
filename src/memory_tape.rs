@@ -4,7 +4,7 @@ const TAPE_SIZE: usize = 30_000 - 1;
 const CELLS_IN_SNIPLET: usize = 11;
 
 pub struct MemoryTape {
-    block: [u8; TAPE_SIZE], // <position, value>
+    block: [u8; TAPE_SIZE],
     head_position: usize,
 }
 
@@ -90,9 +90,9 @@ impl MemoryTape {
         let cells_in_segment = CELLS_IN_SNIPLET;
 
         for i in 0..cells_in_segment {
-            if self.head_position == i {
-                continue;
-            }
+            //if self.head_position == i {
+              //  continue;
+            //}
 
             segment[i] = self.block[startPos];
             startPos += 1;
@@ -100,11 +100,28 @@ impl MemoryTape {
 
     }
 
+    fn count_digits(&self, num: usize) -> usize {
+        if num == 0 {
+            return 1;
+        }
+
+        let mut num_mut = num;
+        let mut cnt = 0;
+
+        while num_mut > 0 {
+            num_mut /= 10;
+
+            cnt += 1;
+        }
+
+        return cnt;
+    }
+
     pub fn print_tape_sniplet(&self){
         let mut cells_used = CELLS_IN_SNIPLET - 1; // count the current cell
 
         let mut segment = [0; CELLS_IN_SNIPLET];
-        segment[CELLS_IN_SNIPLET/2] = self.block[self.head_position];
+        //segment[CELLS_IN_SNIPLET/2] = self.block[self.head_position];
 
         let mut right_cells = MemoryTape::get_cells_num_right(self.head_position, CELLS_IN_SNIPLET/2);
         let mut left_cells = MemoryTape::get_cells_num_left(self.head_position, CELLS_IN_SNIPLET/2);
@@ -126,17 +143,17 @@ impl MemoryTape {
 
         for cell in segment {
             // calculate spaces
-            let cell_digits = (0..).take_while(|i| 10usize.pow(*i) <= cell as usize).count();
-            let index_digits = (0..).take_while(|i| 10usize.pow(*i) <= current_index).count();
+            let cell_digits = self.count_digits(cell as usize);
+            let index_digits = self.count_digits(current_index as usize);
 
-            let cell_len = if(cell_digits > index_digits) {
+            let cell_len = if cell_digits > index_digits {
                 cell_digits
             }else {
                 index_digits
             };
 
             let fill_blanks = |spaces: usize, string: &mut String| {
-                for i in 1..spaces {
+                for _i in 0..spaces {
                     *string += " ";
                 }
             };
@@ -159,7 +176,7 @@ impl MemoryTape {
                 let mut index_str = String::from("[");
                 index_str += &current_index.to_string();
 
-                let spaces_required = cell_len - index_digits + 1;
+                let spaces_required = cell_len - index_digits;
                 fill_blanks(spaces_required, &mut index_str);
                 
                 index_str += "]";
@@ -180,19 +197,12 @@ impl MemoryTape {
                             "^"
                         };
                     }
-
                 } else {
                     for _pos in 0..cell_len+2 {
                         head_str += "_";
                     }
-
-                    if cell_len == 0 {
-                        head_str += "_";
-                    }
                 }
             }
-
-            println!("stop");
 
             current_index += 1;
         }
