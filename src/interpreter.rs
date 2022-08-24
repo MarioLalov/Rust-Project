@@ -1,38 +1,48 @@
 use crate::memory_tape::*;
 
-use std::io;
-
+use std::io::{self, Write};
 use std::{thread, time::Duration};
 
 pub struct Interpreter {
     tape: MemoryTape,
+    should_print_tape: bool,
 
     opened_brackets: Vec<usize>,
     command: Vec<char>,
     command_pos: usize,
+
+    ouput: String,
 }
 
 impl Interpreter {
-    pub fn new() -> Interpreter {
+    pub fn new(should_print_tape: bool) -> Interpreter {
         Interpreter {
             tape: MemoryTape::new(),
+            should_print_tape: should_print_tape,
 
             opened_brackets: Vec::new(),
             command: Vec::new(),
             command_pos: 0,
+
+            ouput: String::new(),   
         }
     }
 
-    fn wait() {
-        thread::sleep(Duration::from_millis(1500));
+    fn wait(&self) {
+        if self.should_print_tape {
+            thread::sleep(Duration::from_millis(1500));
+        }
     }
-    fn clear() {
-        std::process::Command::new("cmd")
-        .args(&["/c", "cls"])
-        .spawn()
-        .expect("cls command failed to start")
-        .wait()
-        .expect("failed to wait");
+    
+    fn clear(&self) {
+        if self.should_print_tape {
+            std::process::Command::new("cmd")
+            .args(&["/c", "cls"])
+            .spawn()
+            .expect("cls command failed to start")
+            .wait()
+            .expect("failed to wait");
+        }
     }
 
     fn move_to_next_rbracket(&mut self) {
@@ -60,7 +70,7 @@ impl Interpreter {
             return;
         }
 
-        self.opened_brackets.push(self.tape.head_position);
+        self.opened_brackets.push(self.command_pos);
     }
 
     fn act_on_rbracket(&mut self) {
@@ -75,7 +85,10 @@ impl Interpreter {
     }
 
     fn get_input(&mut self) {
-        println!("Input: ");
+        println!();
+        print!("Input: ");
+        // flush to avoid delay in print
+        io::stdout().flush();
 
         let mut input = String::new();
 
@@ -88,16 +101,28 @@ impl Interpreter {
         }
 
         //try to get as a digit directly
-        let result = input.parse::<u8>();
+        let result = input.trim().parse::<u8>();
         match result {
             Ok(digit) => self.tape.set_cell_value(digit),
             Err(_) =>    self.tape.set_cell_value(input.as_bytes()[0]),
         }
     }
 
+    fn print_tape(&self) {
+        if !self.should_print_tape {
+            return;
+        }
+
+        self.tape.print_tape_sniplet();
+        if !self.ouput.is_empty() {
+            println!("Output: {}", self.ouput);
+        }
+    }
+
     pub fn interpret(&mut self, command: &str) {
         self.command = command.chars().collect();
-        self.tape.print_tape_sniplet();
+        //self.tape.print_tape_sniplet();
+        self.print_tape();
 
         while self.command_pos < self.command.len() {
             let ch = self.command[self.command_pos];
@@ -113,13 +138,15 @@ impl Interpreter {
 
                 ',' => {
                             self.get_input();
-                            Interpreter::clear();
-                            self.tape.print_tape_sniplet();
+                            self.clear();
+                            self.print_tape();
 
                             self.command_pos += 1;
                             
                             continue;
                         },
+
+                '.' =>  self.ouput.push(self.tape.get_current_value() as char),
 
                 _   =>    {
                             self.command_pos += 1;
@@ -127,11 +154,14 @@ impl Interpreter {
                           },
             };
 
-            Interpreter::wait();
-            Interpreter::clear();
-            self.tape.print_tape_sniplet();
+            self.wait();
+            self.clear();
+            self.print_tape();
 
             self.command_pos += 1;
         }
+
+        self.tape.print_tape_sniplet();
+        println!("Output: {}", self.ouput);
     }
 }
