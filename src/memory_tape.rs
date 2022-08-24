@@ -215,3 +215,67 @@ impl MemoryTape {
         println!("{}", head_str);
     }
 }
+
+#[cfg(test)]
+mod basic_operations_tests {
+    use crate::MemoryTape;
+
+    #[test]
+    fn basic_increment() {
+        let mut tape = MemoryTape::new();
+        tape.set_cell_value(0);
+        tape.increment();
+
+        assert_eq!(tape.get_current_value(), 1);
+    }
+
+    #[test]
+    fn overflow_increment() {
+        let mut tape = MemoryTape::new();
+        tape.set_cell_value(255);
+        tape.increment();
+
+        assert_eq!(tape.get_current_value(), 0);
+    }
+
+    #[test]
+    fn basic_decrement() {
+        let mut tape = MemoryTape::new();
+        tape.set_cell_value(5);
+        tape.decrement();
+
+        assert_eq!(tape.get_current_value(), 4);
+    }
+
+    #[test]
+    fn overflow_decrement() {
+        let mut tape = MemoryTape::new();
+        tape.set_cell_value(0);
+        tape.decrement();
+
+        assert_eq!(tape.get_current_value(), 255);
+    }
+
+    #[test]
+    fn basic_move_left_and_right() {
+        let mut tape = MemoryTape::new();
+
+        tape.move_right();
+        assert_eq!(tape.head_position, 1);
+
+        tape.move_left();
+        assert_eq!(tape.head_position, 0);
+    }
+
+    #[test]
+    fn out_of_range_move_left_and_right() {
+        let mut tape = MemoryTape::new();
+
+        tape.move_left();
+        assert_eq!(tape.head_position, 0);
+
+        tape.move_to(29_999);
+        tape.move_right();
+        assert_eq!(tape.head_position, 29_999);
+    }
+}
