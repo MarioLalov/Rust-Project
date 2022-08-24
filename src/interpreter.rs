@@ -23,8 +23,10 @@ impl Interpreter {
         }
     }
 
-    fn clear_and_wait(&self) {
+    fn wait() {
         thread::sleep(Duration::from_millis(1500));
+    }
+    fn clear() {
         std::process::Command::new("cmd")
         .args(&["/c", "cls"])
         .spawn()
@@ -86,7 +88,7 @@ impl Interpreter {
         }
 
         //try to get as a digit directly
-        let result = input.trim().parse();
+        let result = input.parse::<u8>();
         match result {
             Ok(digit) => self.tape.set_cell_value(digit),
             Err(_) =>    self.tape.set_cell_value(input.as_bytes()[0]),
@@ -109,12 +111,24 @@ impl Interpreter {
                 '[' => self.act_on_lbracket(),
                 ']' => self.act_on_rbracket(),
 
-                ',' => self.get_input(),
+                ',' => {
+                            self.get_input();
+                            Interpreter::clear();
+                            self.tape.print_tape_sniplet();
 
-                _ => break,
+                            self.command_pos += 1;
+                            
+                            continue;
+                        },
+
+                _   =>    {
+                            self.command_pos += 1;
+                            continue;
+                          },
             };
 
-            self.clear_and_wait();
+            Interpreter::wait();
+            Interpreter::clear();
             self.tape.print_tape_sniplet();
 
             self.command_pos += 1;
