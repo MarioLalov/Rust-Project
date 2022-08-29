@@ -22,7 +22,7 @@ impl CTranslator {
     }
 
     fn count_symblol(&mut self, symbl: char) -> usize {
-        let mut cnt = 1;
+        let mut cnt = 0;
 
         loop {
             let ch = self.command[self.command_pos];
@@ -49,8 +49,8 @@ impl CTranslator {
     fn act_on_left_move(&mut self) -> Result<(), std::io::Error> {
         let move_count = self.count_symblol('<');
 
-        let ptr_increment = String::from("ptr -= ") + &move_count.to_string() + ";\n";
-        self.file.write_all(ptr_increment.as_bytes())
+        let ptr_decrement = String::from("ptr -= ") + &move_count.to_string() + ";\n";
+        self.file.write_all(ptr_decrement.as_bytes())
     }
 
     fn act_on_increment(&mut self) -> Result<(), std::io::Error> {
