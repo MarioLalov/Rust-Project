@@ -121,7 +121,7 @@ impl Interpreter {
 
     pub fn interpret(&mut self, command: &str) {
         self.command = command.chars().collect();
-        //self.tape.print_tape_sniplet();
+        
         self.print_tape();
 
         while self.command_pos < self.command.len() {
