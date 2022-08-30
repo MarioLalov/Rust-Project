@@ -3,6 +3,26 @@ use crate::memory_tape::*;
 use std::io::{self, Write};
 use std::{thread, time::Duration};
 
+pub fn clear_terminal() {
+    // try to clear windows terminal
+    match std::process::Command::new("cmd")
+            .args(&["/c", "cls"])
+            .spawn()
+            .expect("cls command failed to start")
+            .wait() 
+            {
+                Ok(_) => (),
+                // if wait failed try to clear linux terminal
+                Err(_) => {
+                            std::process::Command::new("clear")
+                                .spawn()
+                                .expect("clear command failed to start")
+                                .wait()
+                                .expect("faild to wait");
+                          } 
+            };
+}
+
 pub struct Interpreter {
     tape: MemoryTape,
     should_print_tape: bool,
@@ -36,12 +56,7 @@ impl Interpreter {
     
     fn clear(&self) {
         if self.should_print_tape {
-            std::process::Command::new("cmd")
-            .args(&["/c", "cls"])
-            .spawn()
-            .expect("cls command failed to start")
-            .wait()
-            .expect("failed to wait");
+            clear_terminal();
         }
     }
 
@@ -161,6 +176,8 @@ impl Interpreter {
             self.command_pos += 1;
         }
 
+        clear_terminal();
+        println!("Result:");
         self.tape.print_tape_sniplet();
         println!("Output: {}", self.ouput);
     }
