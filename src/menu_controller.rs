@@ -34,7 +34,7 @@ fn get_input() -> String {
 }
 
 fn wait_for_key() {
-    println!("Press any key to continue.");
+    println!("Press enter to continue.");
 
     let mut buff = String::new();
     std::io::stdin()
@@ -42,9 +42,13 @@ fn wait_for_key() {
         .expect("Failed to get input!");
 }
 
-fn interpret(print_tape: bool) {
+fn prepare_for_code_input() {
     clear_terminal();
     println!("Write your code:");
+}
+
+fn interpret(print_tape: bool) {
+    prepare_for_code_input();
 
     let mut interpreter = Interpreter::new(print_tape);
     interpreter.interpret(&get_input());
@@ -53,10 +57,23 @@ fn interpret(print_tape: bool) {
 }
 
 fn translate() {
-    clear_terminal();
-    println!("Write your code:");
-    let mut translator = CTranslator::new("test.c");
+    println!();
+    print!("Enter file path: ");
+    // flush to avoid delay in print
+    io::stdout().flush().unwrap();
+
+    let mut file_name = String::new();
+
+    std::io::stdin()
+        .read_line(&mut file_name)
+        .expect("Failed to get input!");
+
+    prepare_for_code_input();
+    
+    let mut translator = CTranslator::new(&file_name.trim());
     translator.translate(&get_input());
+
+    println!("C code successfully saved to {}", file_name);
 
     wait_for_key();
 }

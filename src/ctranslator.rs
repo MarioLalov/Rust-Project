@@ -14,24 +14,25 @@ impl CTranslator {
             command: Vec::new(),
             command_pos: 0,
 
-            file: match File::open(file_name) {
-                Ok(file) => file,
-                Err(_) => File::create(file_name).unwrap(),
-            },
+            file: File::create(file_name).unwrap(),
         }
     }
 
     fn count_symblol(&mut self, symbl: char) -> usize {
-        let mut cnt = 0;
+        let mut cnt = 1;
+        self.command_pos += 1;
 
         loop {
             let ch = self.command[self.command_pos];
 
-            if ch != symbl || self.command_pos >= self.command.len()-1 {
-                // go back to previous symbol
+            if ch != symbl {
+                // move back to previous symbol
                 self.command_pos -= 1;
 
                 return cnt;
+            } else if self.command_pos >= self.command.len()-1 {
+                // last symbol reached
+                return cnt+1;
             }
 
             cnt += 1;
