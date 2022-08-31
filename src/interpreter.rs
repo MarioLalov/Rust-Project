@@ -177,7 +177,7 @@ impl Interpreter {
         }
 
         clear_terminal();
-        println!("Result:");
+        println!("Result:\n");
         self.tape.print_tape_sniplet();
         println!("Output: {}", self.ouput);
     }

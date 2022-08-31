@@ -56,24 +56,36 @@ fn interpret(print_tape: bool) {
     wait_for_key();
 }
 
+fn create_translator() -> CTranslator {
+    loop {
+        println!();
+        print!("Enter file path: ");
+        // flush to avoid delay in print
+        io::stdout().flush().unwrap();
+
+        let mut file_name = String::new();
+
+        std::io::stdin()
+            .read_line(&mut file_name)
+            .expect("Failed to get input!");
+
+        prepare_for_code_input();
+        
+        match CTranslator::new(&file_name.trim()) {
+            Ok(translator) => return translator,
+            Err(msg) => println!("{}",msg),
+        };
+    }
+}
+
 fn translate() {
-    println!();
-    print!("Enter file path: ");
-    // flush to avoid delay in print
-    io::stdout().flush().unwrap();
-
-    let mut file_name = String::new();
-
-    std::io::stdin()
-        .read_line(&mut file_name)
-        .expect("Failed to get input!");
+    let mut translator = create_translator();
 
     prepare_for_code_input();
     
-    let mut translator = CTranslator::new(&file_name.trim());
     translator.translate(&get_input());
 
-    println!("C code successfully saved to {}", file_name);
+    println!("C code successfully saved to {}", "file");
 
     wait_for_key();
 }

@@ -8,14 +8,27 @@ pub struct CTranslator {
     file: File,
 }
 
-impl CTranslator {
-    pub fn new(file_name: &str) -> CTranslator {
-        CTranslator {
-            command: Vec::new(),
-            command_pos: 0,
+fn get_arithmetic_str(operation: &str, number: usize) -> String{
+    if number == 1 {
+        String::from(operation) + operation
+    } else {
+        String::from(" ") + operation + "= " + &number.to_string()
+    }
+}
 
-            file: File::create(file_name).unwrap(),
-        }
+impl CTranslator {
+    pub fn new(file_name: &str) -> Result<CTranslator, &str> {
+        let ctranslator = CTranslator {
+                            command: Vec::new(),
+                            command_pos: 0,
+
+                            file: match File::create(file_name) {
+                                Ok(file) => file,
+                                Err(_) => return Err("Invalid file name.")
+                            },
+                        };
+
+        return Ok(ctranslator);
     }
 
     fn count_symblol(&mut self, symbl: char) -> usize {
@@ -43,29 +56,29 @@ impl CTranslator {
     fn act_on_right_move(&mut self) -> Result<(), std::io::Error> {
         let move_count = self.count_symblol('>');
 
-        let ptr_increment = String::from("ptr += ") + &move_count.to_string() + ";\n";
+        let ptr_increment = String::from("ptr") + &get_arithmetic_str("+", move_count) + ";\n";
         self.file.write_all(ptr_increment.as_bytes())
     }
 
     fn act_on_left_move(&mut self) -> Result<(), std::io::Error> {
         let move_count = self.count_symblol('<');
 
-        let ptr_decrement = String::from("ptr -= ") + &move_count.to_string() + ";\n";
+        let ptr_decrement = String::from("ptr") + &get_arithmetic_str("-", move_count) + ";\n";
         self.file.write_all(ptr_decrement.as_bytes())
     }
 
     fn act_on_increment(&mut self) -> Result<(), std::io::Error> {
         let incr_count = self.count_symblol('+');
 
-        let ptr_increment = String::from("*ptr += ") + &incr_count.to_string() + ";\n";
+        let ptr_increment = String::from("*ptr") + &get_arithmetic_str("-", incr_count) + ";\n";
         self.file.write_all(ptr_increment.as_bytes())
     }
 
     fn act_on_decrement(&mut self) -> Result<(), std::io::Error> {
         let decr_count = self.count_symblol('-');
 
-        let ptr_increment = String::from("*ptr -= ") + &decr_count.to_string() + ";\n";
-        self.file.write_all(ptr_increment.as_bytes())
+        let ptr_decrement = String::from("*ptr") + &get_arithmetic_str("-", decr_count) + ";\n";
+        self.file.write_all(ptr_decrement.as_bytes())
     }
 
     fn act_on_lbracket(&mut self) -> Result<(), std::io::Error> {
@@ -119,4 +132,28 @@ impl CTranslator {
 
         self.file.write_all("\nreturn 0;\n}".as_bytes());
     }
+}
+
+#[test]
+fn increment_with_one() {
+    let result = get_arithmetic_str("+", 1);
+    assert_eq!(result, "++");
+}
+
+#[test]
+fn increment() {
+    let result = get_arithmetic_str("+", 7);
+    assert_eq!(result, " += 7");
+}
+
+#[test]
+fn decrement_with_one() {
+    let result = get_arithmetic_str("-", 1);
+    assert_eq!(result, "--");
+}
+
+#[test]
+fn decrement() {
+    let result = get_arithmetic_str("-", 7);
+    assert_eq!(result, " -= 7");
 }
