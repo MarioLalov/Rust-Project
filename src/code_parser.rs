@@ -116,8 +116,91 @@ fn divide_into_function(rows_iter: &mut Iter<String>,
 }
 
 #[test]
-fn no_whiles() {
+fn divide_no_whiles() {
     let rows: Vec<String> = vec![String::from("ptr++;"), String::from("ptr++;"), String::from("ptr++;")];
+    let mut iter = rows.iter();
 
+    let mut functions : Vec<Vec<String>> = Vec::new();
+    functions.resize(1, Vec::new());
 
+    let mut fun_number = 0;
+    divide_into_function(&mut iter, &mut fun_number, 0, &mut functions);
+
+    assert_eq!(functions[0].len(), 3);
+    assert_eq!(functions[0][1], "ptr++;");
+}
+
+#[test]
+fn divide_single_while() {
+    let rows: Vec<String> = vec![String::from("ptr++;"), String::from("while (*ptr)"), String::from("{"),
+                                 String::from("ptr++;"), String::from("}"), String::from("ptr++;")];
+    let mut iter = rows.iter();
+
+    let mut functions : Vec<Vec<String>> = Vec::new();
+    functions.resize(2, Vec::new());
+
+    let mut fun_number = 0;
+    divide_into_function(&mut iter, &mut fun_number, 0, &mut functions);
+
+    assert_eq!(functions[0].len(), 3);
+    assert_eq!(functions[1].len(), 4);
+
+    assert_eq!(functions[0][1], "fun1();");
+
+    assert_eq!(functions[1][2], "ptr++;");
+    assert_eq!(functions[1][2], "ptr++;");
+    assert_eq!(functions[1][3], "}");
+}
+
+#[test]
+fn divide_nested_while() {
+    let rows: Vec<String> = vec![String::from("while (*ptr)"), String::from("{"), 
+                                 String::from("while (*ptr)"), String::from("{"), String::from("ptr++;"),  
+                                 String::from("}"), String::from("}")];
+    let mut iter = rows.iter();
+
+    let mut functions : Vec<Vec<String>> = Vec::new();
+    functions.resize(3, Vec::new());
+
+    let mut fun_number = 0;
+    divide_into_function(&mut iter, &mut fun_number, 0, &mut functions);
+
+    assert_eq!(functions[0].len(), 1);
+    assert_eq!(functions[1].len(), 4);
+    assert_eq!(functions[2].len(), 4);
+
+    assert_eq!(functions[0][0], "fun1();");
+
+    assert_eq!(functions[1][1], "{");
+    assert_eq!(functions[1][2], "fun2();");
+
+    assert_eq!(functions[2][2], "ptr++;");
+    assert_eq!(functions[2][3], "}");
+}
+
+#[test]
+fn divide_separate_whiles() {
+    let rows: Vec<String> = vec![String::from("while (*ptr)"), String::from("{"), String::from("ptr++;"),
+                                 String::from("}"), String::from("while (*ptr)"), String::from("{"), 
+                                 String::from("ptr--;"),String::from("}")];
+    let mut iter = rows.iter();
+
+    let mut functions : Vec<Vec<String>> = Vec::new();
+    functions.resize(3, Vec::new());
+
+    let mut fun_number = 0;
+    divide_into_function(&mut iter, &mut fun_number, 0, &mut functions);
+
+    assert_eq!(functions[0].len(), 2);
+    assert_eq!(functions[1].len(), 4);
+    assert_eq!(functions[2].len(), 4);
+
+    assert_eq!(functions[0][0], "fun1();");
+    assert_eq!(functions[0][1], "fun2();");
+
+    assert_eq!(functions[1][1], "{");
+    assert_eq!(functions[1][2], "ptr++;");
+
+    assert_eq!(functions[2][2], "ptr--;");
+    assert_eq!(functions[2][3], "}");
 }
