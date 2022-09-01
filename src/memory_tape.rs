@@ -20,7 +20,7 @@ impl MemoryTape {
         let current_value = self.block[self.head_position];
         let should_overflow = current_value == 255;
 
-        self.block[self.head_position] = if(should_overflow){
+        self.block[self.head_position] = if should_overflow {
             0
         }else{
             current_value + 1
@@ -31,7 +31,7 @@ impl MemoryTape {
         let current_value = self.block[self.head_position];
         let should_overflow = current_value == 0;
 
-        self.block[self.head_position] = if(should_overflow){
+        self.block[self.head_position] = if should_overflow {
             255
         }else{
             current_value - 1
@@ -42,7 +42,7 @@ impl MemoryTape {
         let current_position = self.head_position;
         let can_move = current_position != INITIAL_POS;
 
-        self.head_position = if(can_move) {
+        self.head_position = if can_move {
             current_position-1
         } else {
             current_position
@@ -53,7 +53,7 @@ impl MemoryTape {
         let current_position = self.head_position;
         let can_move = current_position != FINAL_POS;
 
-        self.head_position = if(can_move) {
+        self.head_position = if can_move {
             current_position+1
         } else {
             current_position
@@ -63,7 +63,7 @@ impl MemoryTape {
     pub fn move_to(&mut self, pos: usize) {
         let is_valid_position = (pos <= FINAL_POS) && (pos >= INITIAL_POS);
 
-        self.head_position = if(is_valid_position) {
+        self.head_position = if is_valid_position {
             pos
         } else {
             self.head_position
@@ -79,7 +79,7 @@ impl MemoryTape {
     }
 
     fn get_cells_num_left(head_position: usize, cells_num: usize) -> usize {
-        if(head_position < cells_num) {
+        if head_position < cells_num {
             head_position
         }else {
             cells_num
@@ -87,21 +87,20 @@ impl MemoryTape {
     }
 
     fn get_cells_num_right(head_position: usize, cells_num: usize) -> usize {
-        if(head_position + cells_num > FINAL_POS) {
+        if head_position + cells_num > FINAL_POS {
             FINAL_POS - head_position
         }else {
             cells_num
         }
     }
 
-    fn fill_segment(&self, segment: &mut [u8], mut startPos: usize) {
+    fn fill_segment(&self, segment: &mut [u8], mut start_pos: usize) {
         let cells_in_segment = CELLS_IN_SNIPLET;
 
         for i in 0..cells_in_segment {
-            segment[i] = self.block[startPos];
-            startPos += 1;
+            segment[i] = self.block[start_pos];
+            start_pos += 1;
         } 
-
     }
 
     fn count_digits(&self, num: usize) -> usize {
@@ -122,18 +121,14 @@ impl MemoryTape {
     }
 
     pub fn print_tape_sniplet(&self){
-        let mut cells_used = CELLS_IN_SNIPLET - 1; // count the current cell
-
         let mut segment = [0; CELLS_IN_SNIPLET];
 
-        let mut right_cells = MemoryTape::get_cells_num_right(self.head_position, CELLS_IN_SNIPLET/2);
+        let right_cells = MemoryTape::get_cells_num_right(self.head_position, CELLS_IN_SNIPLET/2);
         let mut left_cells = MemoryTape::get_cells_num_left(self.head_position, CELLS_IN_SNIPLET/2);
 
         // when there are less cells on the right or left
-        if(right_cells < CELLS_IN_SNIPLET/2) {
+        if right_cells < CELLS_IN_SNIPLET/2 {
             left_cells = CELLS_IN_SNIPLET - 1 - right_cells;
-        } else if(left_cells < CELLS_IN_SNIPLET/2) {
-            right_cells = CELLS_IN_SNIPLET - 1 - left_cells;
         }
 
         let mut current_index = self.head_position - left_cells;
@@ -218,7 +213,7 @@ impl MemoryTape {
 
 #[cfg(test)]
 mod basic_operations_tests {
-    use crate::MemoryTape;
+    use crate::memory_tape::MemoryTape;
 
     #[test]
     fn basic_increment() {
