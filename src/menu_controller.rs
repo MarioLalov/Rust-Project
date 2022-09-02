@@ -56,6 +56,8 @@ fn get_input_from_file() -> String {
         Err(_) => String::new(),
     };
 
+    clear_terminal();
+
     input
 }
 
@@ -70,7 +72,7 @@ fn wait_for_key() {
 
 fn prepare_for_code_input() {
     clear_terminal();
-    println!("Write your code:");
+    println!("Write your code (use :q to denote the end):");
 }
 
 fn prepare_for_input_file() {

@@ -103,7 +103,7 @@ impl Interpreter {
         println!();
         print!("Input: ");
         // flush to avoid delay in print
-        io::stdout().flush();
+        io::stdout().flush().unwrap();
 
         let mut input = String::new();
 
@@ -123,6 +123,23 @@ impl Interpreter {
         }
     }
 
+    fn print_command(&self, print_with_pos: bool) {
+        if !self.should_print_tape {
+            return;
+        }
+
+        let current_command = if print_with_pos {
+                                String::from_iter(&self.command[0..self.command_pos])   +
+                                "{" + &String::from(self.command[self.command_pos]) + "}" +
+                                &String::from_iter(&self.command[self.command_pos+1..])
+                              }else {
+                                String::from_iter(&self.command)
+                              };
+
+        println!();
+        println!("{}", current_command);
+    }
+
     fn print_tape(&self) {
         if !self.should_print_tape {
             return;
@@ -138,6 +155,7 @@ impl Interpreter {
         self.command = command.chars().collect();
         
         self.print_tape();
+        self.print_command(false);
 
         while self.command_pos < self.command.len() {
             let ch = self.command[self.command_pos];
@@ -172,6 +190,7 @@ impl Interpreter {
             self.wait();
             self.clear();
             self.print_tape();
+            self.print_command(true);
 
             self.command_pos += 1;
         }
