@@ -1,4 +1,3 @@
-
 use std::slice::Iter;
 use std::fs::File;
 use std::io::prelude::*;
@@ -33,7 +32,7 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
     }
 
     // write main
-    let declaration = String::from("\nchar array[30000] = {0};\nchar* ptr = array;\nint main()\n{\n");
+    let declaration = String::from("\nchar array[30000] = {0};\nchar* ptr = array;\n\nint main()\n{\n");
     match file.write_all(declaration.as_bytes()) {
         Ok(_) => (),
         Err(_) => return Err("Couldn't write to file."),

@@ -1,8 +1,15 @@
 use std::io::{self, Write};
+use std::fs;
 
 use crate::ctranslator::*;
 use crate::interpreter::*;
 
+enum InputType {
+    File,
+    Terminal,
+}
+
+// inputs
 fn get_input() -> String {
     let mut input = String::new();
 
@@ -33,6 +40,25 @@ fn get_input() -> String {
     }
 }
 
+fn get_input_from_file() -> String {
+    let mut file_name = String::new();
+    println!();
+    print!("Enter input file path: ");
+    // flush to avoid delay in print
+    io::stdout().flush().unwrap();
+
+    std::io::stdin()
+        .read_line(&mut file_name)
+        .expect("Failed to get input!");
+
+    let  input = match fs::read_to_string(file_name.trim()) {
+        Ok(text) => text,
+        Err(_) => String::new(),
+    };
+
+    input
+}
+
 fn wait_for_key() {
     println!("Press enter to continue.");
 
@@ -47,11 +73,15 @@ fn prepare_for_code_input() {
     println!("Write your code:");
 }
 
-fn interpret(print_tape: bool) {
-    prepare_for_code_input();
+fn prepare_for_input_file() {
+    clear_terminal();
+}
+
+fn interpret(print_tape: bool, prepare_fun: &dyn Fn()->(), input_fun: &dyn Fn()->String) {
+    prepare_fun();
 
     let mut interpreter = Interpreter::new(print_tape);
-    interpreter.interpret(&get_input());
+    interpreter.interpret(&input_fun());
 
     wait_for_key();
 }
@@ -59,7 +89,7 @@ fn interpret(print_tape: bool) {
 fn create_translator() -> CTranslator {
     loop {
         println!();
-        print!("Enter file path: ");
+        print!("Enter output file path: ");
         // flush to avoid delay in print
         io::stdout().flush().unwrap();
 
@@ -78,19 +108,55 @@ fn create_translator() -> CTranslator {
     }
 }
 
-fn translate() {
+fn translate(prepare_fun: &dyn Fn()->(), input_fun: &dyn Fn()->String) {
     let mut translator = create_translator();
 
-    prepare_for_code_input();
+    prepare_fun();
     
-    translator.translate(&get_input());
-
-    println!("C code successfully saved to {}", "file");
+    match translator.translate(&input_fun()) {
+        Ok(_) => println!("C code successfully saved to {}", "file"),
+        Err(msg) => println!("{}", msg),
+    };
 
     wait_for_key();
 }
 
-fn interpret_menu() {
+fn file_or_input_menu() -> Option<InputType> {
+    loop { 
+        clear_terminal();
+
+        println!("Choose an option:\n 1. Back\n 2. Use terminal as input\n 3. Use file as input\n");
+        print!("Input: ");
+        // flush to avoid delay in print
+        io::stdout().flush().unwrap();
+
+        let mut input = String::new();
+
+        std::io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to get input!");
+        
+        // exclude enter
+        match &input[0..input.len()-2] {
+            "1" => return None,
+            "2" => return Some(InputType::Terminal),
+            "3" => return Some(InputType::File),
+            _ => continue,
+        };
+    }
+}
+
+fn interpret_menu(input_type: InputType) {
+    let input_fun = match input_type {
+                                        InputType::Terminal => get_input,
+                                        InputType::File => get_input_from_file,
+                                     };
+
+    let prepare_fun = match input_type {
+                                        InputType::Terminal => prepare_for_code_input,
+                                        InputType::File => prepare_for_input_file,
+                                        };
+
     loop { 
         clear_terminal();
 
@@ -108,8 +174,8 @@ fn interpret_menu() {
         // exclude enter
         match &input[0..input.len()-2] {
             "1" => return,
-            "2" => interpret(true),
-            "3" => interpret(false),
+            "2" => interpret(true, &prepare_fun, &input_fun),
+            "3" => interpret(false, &prepare_fun, &input_fun),
             _ => continue,
         };
     }
@@ -133,8 +199,30 @@ pub fn start_menu() {
         // exclude enter
         match &input[0..input.len()-2] {
             "1" => return,
-            "2" => interpret_menu(),
-            "3" => translate(),
+            "2" => {
+                        match file_or_input_menu() {
+                            Some(input_type) => interpret_menu(input_type),
+                            None => continue,
+                        };
+                   }
+                
+            "3" => {
+                        let input_type = match file_or_input_menu() {
+                                                                        Some(input_type) => input_type,
+                                                                        None => continue,
+                                                                    };
+                        let input_fun = match input_type {
+                                                            InputType::Terminal => get_input,
+                                                            InputType::File => get_input_from_file,
+                                                         };
+                    
+                        let prepare_fun = match input_type {
+                                                            InputType::Terminal => prepare_for_code_input,
+                                                            InputType::File => prepare_for_input_file,
+                                                           };
+
+                        translate(&prepare_fun, &input_fun);
+                   }   
             _ => continue,
         };
     }

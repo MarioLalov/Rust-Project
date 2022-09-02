@@ -110,7 +110,7 @@ impl CTranslator {
         
     }
 
-    pub fn translate(&mut self, command: &str) {
+    pub fn translate<'a>(&mut self, command: &str) -> Result<(), &'a str> {
         self.command = command.chars().collect();
         
         self.command_pos = 0;
@@ -132,7 +132,7 @@ impl CTranslator {
             self.command_pos += 1;
         }
 
-        parse(&self.code_lines, self.whiles_count + 1, &mut self.file);
+        parse(&self.code_lines, self.whiles_count + 1, &mut self.file)
     }
 }
 
