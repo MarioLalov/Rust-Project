@@ -39,13 +39,13 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
     };
 
     for row in &functions[0] {
-        match file.write_all((String::from(row) + "\n").as_bytes()) {
+        match file.write_all((String::from("\t") + row + "\n").as_bytes()) {
             Ok(_) => (),
             Err(_) => return Err("Couldn't write to file."),
         };
     }
 
-    match file.write_all("\nreturn 0;\n}\n\n".as_bytes()) {
+    match file.write_all("\n\treturn 0;\n}\n\n".as_bytes()) {
         Ok(_) => (),
         Err(_) => return Err("Couldn't write to file."),
     };
@@ -59,7 +59,7 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
         };
 
         for row in &functions[fun_id] {
-            match file.write_all((String::from(row) + "\n").as_bytes()) {
+            match file.write_all((String::from("\t") + row + "\n").as_bytes()) {
                 Ok(_) => (),
                 Err(_) => return Err("Couldn't write to file."),
             };
