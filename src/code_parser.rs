@@ -24,7 +24,7 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
 
     // write declaration
     for i in 1..functions.len() {
-        let declaration = String::from("void fun") + &i.to_string() + "();\n";
+        let declaration = String::from("void fun") + &i.to_string() + "(char** in_ptr);\n";
         match file.write_all(declaration.as_bytes()) {
             Ok(_) => (),
             Err(_) => return Err("Couldn't write to file."),
@@ -32,7 +32,7 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
     }
 
     // write main
-    let declaration = String::from("\nchar array[30000] = {0};\nchar* ptr = array;\n\nint main()\n{\n");
+    let declaration = String::from("\n\nint main()\n{\n\tchar array[30000] = {0};\n\tchar* ptr = array;\n");
     match file.write_all(declaration.as_bytes()) {
         Ok(_) => (),
         Err(_) => return Err("Couldn't write to file."),
@@ -52,7 +52,7 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
 
     // write definitions
     for fun_id in 1..functions.len() {
-        let declaration = String::from("void fun") + &fun_id.to_string() + "()\n{\n";
+        let declaration = String::from("void fun") + &fun_id.to_string() + "(char** in_ptr)\n{\n\tchar* ptr = *in_ptr;\n";
         match file.write_all(declaration.as_bytes()) {
             Ok(_) => (),
             Err(_) => return Err("Couldn't write to file."),
@@ -96,7 +96,7 @@ fn divide_into_function(rows_iter: &mut Iter<String>,
         } else if row == "while (*ptr)"{
             // add current functin
             *next_fun_num += 1;
-            functions[current_fun_num].push(String::from("fun") + &(next_fun_num).to_string() + "();");
+            functions[current_fun_num].push(String::from("fun") + &(next_fun_num).to_string() + "(&ptr);");
             // add first two rows of next function
             functions[*next_fun_num].push(String::from(row));
 
