@@ -60,7 +60,7 @@ impl MemoryTape {
         };
     }
 
-    pub fn move_to(&mut self, pos: usize) {
+    pub fn _move_to(&mut self, pos: usize) {
         let is_valid_position = (pos <= FINAL_POS) && (pos >= INITIAL_POS);
 
         self.head_position = if is_valid_position {
@@ -269,7 +269,7 @@ mod basic_operations_tests {
         tape.move_left();
         assert_eq!(tape.head_position, 0);
 
-        tape.move_to(29_999);
+        tape._move_to(29_999);
         tape.move_right();
         assert_eq!(tape.head_position, 29_999);
     }
