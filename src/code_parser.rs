@@ -24,7 +24,7 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
 
     // write declaration
     for i in 1..functions.len() {
-        let declaration = String::from("void fun") + &i.to_string() + "(char** in_ptr);\n";
+        let declaration = String::from("void fun") + &i.to_string() + "(char** ptr);\n";
         match file.write_all(declaration.as_bytes()) {
             Ok(_) => (),
             Err(_) => return Err("Couldn't write to file."),
@@ -52,7 +52,7 @@ fn write_to_file<'a>(file: &mut File, functions: &Vec<Vec<String>>) -> Result<()
 
     // write definitions
     for fun_id in 1..functions.len() {
-        let declaration = String::from("void fun") + &fun_id.to_string() + "(char** in_ptr)\n{\n\tchar* ptr = *in_ptr;\n";
+        let declaration = String::from("void fun") + &fun_id.to_string() + "(char** ptr)\n{\n";
         match file.write_all(declaration.as_bytes()) {
             Ok(_) => (),
             Err(_) => return Err("Couldn't write to file."),
@@ -96,9 +96,14 @@ fn divide_into_function(rows_iter: &mut Iter<String>,
         } else if row == "while (*ptr)"{
             // add current functin
             *next_fun_num += 1;
-            functions[current_fun_num].push(String::from("fun") + &(next_fun_num).to_string() + "(&ptr);");
+            if current_fun_num == 0 {
+                functions[current_fun_num].push(String::from("fun") + &(next_fun_num).to_string() + "(&ptr);");
+            } else {
+                functions[current_fun_num].push(String::from("fun") + &(next_fun_num).to_string() + "(ptr);");
+            }
+
             // add first two rows of next function
-            functions[*next_fun_num].push(String::from(row));
+            functions[*next_fun_num].push(String::from("while (**ptr)"));
 
             let new_row = match rows_iter.next() {
                 Some(row) => row,
@@ -109,7 +114,27 @@ fn divide_into_function(rows_iter: &mut Iter<String>,
             divide_into_function(rows_iter, next_fun_num, *next_fun_num, functions);
         } else {
             // standard add
-            functions[current_fun_num].push(String::from(row));
+            if current_fun_num == 0 {
+                // when in main
+                functions[current_fun_num].push(String::from(row));
+
+                continue;
+            }
+
+            let mut modified_row = String::new();
+
+            let row_vec: Vec<char> = row.chars().collect();
+            for i in 0..row_vec.len() - 3 {
+                if String::from_iter(&row_vec[i..i+3]) == "ptr" {
+                    modified_row = String::from_iter(&row_vec[0..i]) + "*" + 
+                                   &String::from_iter(&row_vec[i..]);
+
+                    break;
+                }
+
+            }
+
+            functions[current_fun_num].push(String::from(modified_row));
         }
     }
 }
@@ -144,10 +169,10 @@ fn divide_single_while() {
     assert_eq!(functions[0].len(), 3);
     assert_eq!(functions[1].len(), 4);
 
-    assert_eq!(functions[0][1], "fun1();");
+    assert_eq!(functions[0][1], "fun1(&ptr);");
 
-    assert_eq!(functions[1][2], "ptr++;");
-    assert_eq!(functions[1][2], "ptr++;");
+    assert_eq!(functions[1][2], "*ptr++;");
+    assert_eq!(functions[1][2], "*ptr++;");
     assert_eq!(functions[1][3], "}");
 }
 
@@ -168,12 +193,12 @@ fn divide_nested_while() {
     assert_eq!(functions[1].len(), 4);
     assert_eq!(functions[2].len(), 4);
 
-    assert_eq!(functions[0][0], "fun1();");
+    assert_eq!(functions[0][0], "fun1(&ptr);");
 
     assert_eq!(functions[1][1], "{");
-    assert_eq!(functions[1][2], "fun2();");
+    assert_eq!(functions[1][2], "fun2(ptr);");
 
-    assert_eq!(functions[2][2], "ptr++;");
+    assert_eq!(functions[2][2], "*ptr++;");
     assert_eq!(functions[2][3], "}");
 }
 
@@ -194,12 +219,12 @@ fn divide_separate_whiles() {
     assert_eq!(functions[1].len(), 4);
     assert_eq!(functions[2].len(), 4);
 
-    assert_eq!(functions[0][0], "fun1();");
-    assert_eq!(functions[0][1], "fun2();");
+    assert_eq!(functions[0][0], "fun1(&ptr);");
+    assert_eq!(functions[0][1], "fun2(&ptr);");
 
     assert_eq!(functions[1][1], "{");
-    assert_eq!(functions[1][2], "ptr++;");
+    assert_eq!(functions[1][2], "*ptr++;");
 
-    assert_eq!(functions[2][2], "ptr--;");
+    assert_eq!(functions[2][2], "*ptr--;");
     assert_eq!(functions[2][3], "}");
 }
